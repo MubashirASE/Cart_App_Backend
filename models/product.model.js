@@ -5,7 +5,14 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   image: { type: String, required: true },
   quantity: { type: Number, required: true },
-  createdAt: { type: Date, default: Date.now } // optional
+  serial_number: { type: Number, required: true },
+
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  createdAt: { type: Date, default: Date.now } 
 });
 
 export default mongoose.model("Product", productSchema);

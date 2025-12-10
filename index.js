@@ -1,12 +1,13 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import http from "http";
 import connectDB from "./database/db.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
+import userRoutes from "./routes/user.route.js";
+import orderRoutes from "./routes/order.route.js";
 
-dotenv.config();
 connectDB();
 
 const app = express();
@@ -23,8 +24,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.use("/user", userRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
+app.use("/order", orderRoutes);
 
 app.get("/", (req, res) => res.send("API is running..."));
 
