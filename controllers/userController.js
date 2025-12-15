@@ -49,8 +49,8 @@ export const SignUp = async (req, res) => {
       user.verificationTokenExpires = Date.now() + 1000 * 60 * 60; 
       await user.save();
 
-      const html = `<h3>Verify your account</h3>
-                    <p>Your verification code is : <b>${otp}</b></p>`;
+      const html =generateOtpEmailTemplate(otp, name)
+
       console.log(email)
       await sendEmail({ to: email, subject: "Verify your account", html });
 
@@ -111,8 +111,8 @@ export const resendVerification = async (req, res) => {
     user.verificationTokenExpires = Date.now() + 1000 * 60 * 60; // 1 hour
     await user.save();
 
-    const html = `<h3>Verify your account</h3>
-                  <p>Your new verification code is: <b>${otp}</b></p>`;
+    const html =generateOtpEmailTemplate(otp, user.name)
+
 
     // await sendEmail({ to: email, subject: "Verify your account", html });
 await sendEmail({
@@ -128,65 +128,124 @@ await sendEmail({
   }
 };
 
+export const generateOtpEmailTemplate = (otp, name) => {
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>OTP Verification - GoCartify</title>
+      <style>
+          body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; padding: 30px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          .header { font-size: 24px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px; }
+          .subheader { font-size: 16px; margin-bottom: 20px; }
+          .otp { display: inline-block; font-size: 32px; font-weight: bold; background-color: #e0f2fe; padding: 10px 20px; border-radius: 8px; letter-spacing: 4px; color: #0369a1; margin-bottom: 20px; }
+          .footer { font-size: 14px; color: #6b7280; margin-top: 30px; }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="header">Hello ${name}</div>
+          <div class="subheader">Welcome to <b>GoCartify</b>! Use the following OTP to verify your account:</div>
+          <div class="otp">${otp}</div>
+          <div class="subheader">This OTP is valid for 1 hour.</div>
+          <div class="footer">If you did not request this, please ignore this email. <br/>© 2025 GoCartify</div>
+      </div>
+  </body>
+  </html>
+  `;
+};
+
+// export const Login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const data = await User.findOne({ email });
+
+//     if (!data) {
+//       return res.json({ success: false, message: "Invalid Email!" });
+//     }
+
+//     const isPassword = await bcrypt.compare(password, data.password);
+//     if (!isPassword) {
+//       return res.json({ success: false, message: "Incorrect Password!" });
+//     }
+
+//     if (!data.isVerified) {
+//       const token = crypto.randomBytes(32).toString("hex");
+//       data.verificationToken = token;
+//       data.verificationTokenExpires = Date.now() + 1000 * 60 * 60;
+//       await data.save();
+
+//       const verifyUrl = `${process.env.BACKEND_URL}/api/user/verify/${token}`;
+//       const html = `<h3>Verify your account </h3>
+//                     <p>Click link to verify:</p>
+//                     <a href="${verifyUrl}">${verifyUrl}</a>`;
+
+//       await sendEmail({
+//         to: email,
+//         subject: "Verify your admin account",
+//         html,
+//       });
+
+//       return res.json({
+//         success: false,
+//         message: "Please verify your email. A new verification link has been sent!",
+//       });
+//     }
+
+//       const otp = Math.floor(100000 + Math.random() * 900000).toString();
+//       data.verificationToken = otp;
+//       data.verificationTokenExpires = Date.now() + 1000 * 60 * 15; 
+//       await data.save();
+
+//       const html = `<h3>Login Verification</h3>
+//                     <p>Your login verification code is: <b>${otp}</b></p>`;
+      
+//       await sendEmail({ to: email, subject: "Login OTP", html });
+
+//       return res.json({
+//         success: true,
+//         requireOtp: true,
+//         message: "OTP sent to your email. Please verify to login.",
+//       });
+
+
+//   } catch (error) {
+//     console.log(error);
+//     return res.json({ success: false, message: "Login failed!" });
+//   }
+// };
+
 export const Login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const data = await User.findOne({ email });
 
-    if (!data) {
-      return res.json({ success: false, message: "Invalid Email!" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "Invalid Email! " });
     }
 
-    const isPassword = await bcrypt.compare(password, data.password);
-    if (!isPassword) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return res.json({ success: false, message: "Incorrect Password!" });
     }
-
-    if (!data.isVerified) {
-      const token = crypto.randomBytes(32).toString("hex");
-      data.verificationToken = token;
-      data.verificationTokenExpires = Date.now() + 1000 * 60 * 60;
-      await data.save();
-
-      const verifyUrl = `${process.env.BACKEND_URL}/api/user/verify/${token}`;
-      const html = `<h3>Verify your account </h3>
-                    <p>Click link to verify:</p>
-                    <a href="${verifyUrl}">${verifyUrl}</a>`;
-
-      await sendEmail({
-        to: email,
-        subject: "Verify your admin account",
-        html,
-      });
-
-      return res.json({
+    console.log("user",user)
+    if (user.isBlocked) {
+      return res.status(403).json({
         success: false,
-        message: "Please verify your email. A new verification link has been sent!",
+        message: "Your account is blocked. You cannot Access"
       });
     }
-
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      data.verificationToken = otp;
-      data.verificationTokenExpires = Date.now() + 1000 * 60 * 15; 
-      await data.save();
-
-      const html = `<h3>Login Verification</h3>
-                    <p>Your login verification code is: <b>${otp}</b></p>`;
-      
-      await sendEmail({ to: email, subject: "Login OTP", html });
-
-      return res.json({
-        success: true,
-        requireOtp: true,
-        message: "OTP sent to your email. Please verify to login.",
-      });
-
+    return generateToken(res, user, ` ${user.name} Welcome Back!`); 
 
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.json({ success: false, message: "Login failed!" });
   }
 };
+
 
 export const getProfile = async (req, res) => {
     try {
@@ -239,28 +298,90 @@ export const getadminData= async (req, res) => {
   }
 };
 export const userBlocked=async (req, res) => {
+  const userId = await User.findById(req.params.id);
+  if (!userId) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
   const user = await User.findByIdAndUpdate(
-    req.params.id,
+    userId._id,
     { isBlocked: true },
     { new: true }
   );
 
   res.json({
     success: true,
-    message: "User blocked",
+    message: "User blocked successfully!",
     user
   });
 }
 export const userUnBlocked=async (req, res) => {
+  const userId = await User.findById(req.params.id);
+  if (!userId) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
   const user = await User.findByIdAndUpdate(
-    req.params.id,
+    userId._id,
     { isBlocked: false },
     { new: true }
   );
 
   res.json({
     success: true,
-    message: "User unblocked",
+    message: "User unblocked successfully!",
     user
   });
 }
+
+export const adminSendMail=async (req, res) => {
+  const userId = await User.findById(req.params.id);
+  if (!userId) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { isBlocked: false },
+    { new: true }
+  );
+  const reason='Violation of GoCartify rules'
+    const emailHtml = generateBlockEmailTemplate(user.name, reason);
+    await sendEmail({
+      to: user.email,
+      subject: "Your GoCartify account has been blocked",
+      html: emailHtml,
+    });
+    return res.json({ success: true, message: "User sent email successfully." });
+}
+export const generateBlockEmailTemplate = (userName, reason) => {
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Account Blocked - GoCartify</title>
+      <style>
+          body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; padding: 30px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          .header { font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 10px; }
+          .subheader { font-size: 16px; margin-bottom: 20px; }
+          .reason-box { background-color: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          .footer { font-size: 14px; color: #6b7280; margin-top: 30px; }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="header">Hello ${userName},</div>
+          <div class="subheader">We regret to inform you that your GoCartify account has been <b>blocked</b>.</div>
+          <div class="reason-box">
+              <strong>Reason:</strong> ${reason}
+          </div>
+          <div class="subheader">
+              This action was taken because your account violated our rules and policies. 
+              Please contact our support team if you think this was a mistake.
+          </div>
+          <div class="footer">© 2025 GoCartify. All rights reserved.</div>
+      </div>
+  </body>
+  </html>
+  `;
+};
