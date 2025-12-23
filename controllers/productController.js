@@ -3,10 +3,11 @@ import Product from "../models/product.model.js";
 
 export const createProduct = async (req, res) => {
   try {
-    const { name, price, quantity, serial_number } = req.body;
+    console.log("req",req.file.path)
+    const { name, price, quantity, serial_number , category} = req.body;
     const userId = req.userId;
 
-    if (!name || !price || !quantity || !serial_number) {
+    if (!name || !price || !quantity || !serial_number || !category) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -20,13 +21,14 @@ export const createProduct = async (req, res) => {
     }
 
     const storedImagePath = `/uploads/${req.file.filename}`;
-
+    console.log("storedImagePath",req.file)
     const newProduct = await Product.create({
       name,
       price,
       quantity,
       serial_number,
-      image: storedImagePath,
+      category,
+      image: req.file.path,
       user: userId,
     });
 
@@ -46,7 +48,8 @@ export const createProduct = async (req, res) => {
 export const fetchProducts = async (req, res) => {
   try {
     const products = await Product.find()
-      .populate("user", "name email");
+      .populate("user", "name email")
+      .populate("category", "name slug");
 
     return res.json(products);
 
@@ -56,9 +59,60 @@ export const fetchProducts = async (req, res) => {
   }
 };
 
+export const fetchProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    console.log("categoryId",categoryId)
+    if (!categoryId) {
+      return res.status(400).json({ message: "Category ID is required" });
+    }
+
+    const products = await Product.find({ category: categoryId })
+      .populate("user", "name email")
+      .populate("category");
+    console.log("products",products)
+    return res.json({
+      success: true,
+      count: products.length,
+      products
+    });
+
+  } catch (error) {
+    console.error("FETCH PRODUCTS BY CATEGORY ERROR:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+// routes/productRoutes.js
+
+export const filterProductsByCategory = async (req, res) => {
+  try {
+    const { categoryIds } = req.body;
+    console.log("categoryIds",categoryIds)
+    if (!categoryIds || categoryIds.length === 0) {
+      return res.status(400).json({ message: "Category IDs are required" });
+    }
+
+    // Products in selected categories
+    const products = await Product.find({ category: { $in: categoryIds } })
+      .populate("user", "name email")
+      .populate("category");
+
+    return res.json({
+      success: true,
+      count: products.length,
+      products,
+    });
+  } catch (err) {
+    console.error("FILTER PRODUCTS ERROR:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
+
 export const updateProduct = async (req, res) => {
   try {
     const userId = req.userId;
+    console.log("file",req.file.path)  
     const { id, name, price, quantity, serial_number } = req.body;
     console.log()
     if (!id) {
@@ -82,7 +136,7 @@ export const updateProduct = async (req, res) => {
     if (serial_number) product.serial_number = serial_number;
 
     if (req.file) {
-      product.image = `/uploads/${req.file.filename}`;
+      product.image = req.file.path;
     }
 
     const updatedProduct = await product.save();
@@ -125,8 +179,9 @@ export const deleteProduct = async (req, res) => {
 export const fetchProductsByUser = async (req, res) => {
   try {
     const userId = req.userId;
-    console.log("data>>>>>>>",userId);
-    const products = await Product.find({ user: userId });
+    console.log("data",userId);
+    const products = await Product.find({ user: userId })
+      .populate("category", "name slug");
 
     return res.json({
       success: true,

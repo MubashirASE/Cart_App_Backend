@@ -247,17 +247,41 @@ export const Login = async (req, res) => {
 };
 
 
-export const getProfile = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId).select("-password");
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-        res.json({ success: true, user });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: "Server Error" });
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { name, email, currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    if (currentPassword && newPassword) {
+      const isMatch = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Current password incorrect" });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+    }
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 export const getAllUserData= async (req, res) => {
@@ -281,7 +305,7 @@ const userData = await User.find({
 };
 export const getadminData= async (req, res) => {
   try {
-
+    
     const adminData= await User.find({role:{$eq:"admin"}}).select("-password");
     console.log(adminData)
     return res.json({
