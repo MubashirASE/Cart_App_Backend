@@ -6,7 +6,6 @@ import connectDB from "./database/db.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import userRoutes from "./routes/user.route.js";
-import adminRoutes from "./routes/admin.route.js";
 import orderRoutes from "./routes/order.route.js";
 import categoryRoutes from "./routes/category.route.js";
 
