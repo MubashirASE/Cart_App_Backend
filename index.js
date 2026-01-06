@@ -27,7 +27,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use("/user", userRoutes);
-app.use("/admin", adminRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
 app.use("/order", orderRoutes);
