@@ -27,7 +27,7 @@ export const isAuthentication = async (req, res, next) => {
       next();
     } catch (err) {
       console.log("JWT verification failed:", err);
-      return res.status(401).json({ success: false, message: "Token invalid" });
+      return res.status(401).json({ success: false, message: "Session expired. Please login again" });
     }
   } else {
     return res.status(401).json({ success: false, message: "No token provided" });

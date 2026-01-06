@@ -114,7 +114,6 @@ export const resendVerification = async (req, res) => {
     const html =generateOtpEmailTemplate(otp, user.name)
 
 
-    // await sendEmail({ to: email, subject: "Verify your account", html });
 await sendEmail({
   to: email,
   subject: "Verify your account",
@@ -158,65 +157,6 @@ export const generateOtpEmailTemplate = (otp, name) => {
   `;
 };
 
-// export const Login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const data = await User.findOne({ email });
-
-//     if (!data) {
-//       return res.json({ success: false, message: "Invalid Email!" });
-//     }
-
-//     const isPassword = await bcrypt.compare(password, data.password);
-//     if (!isPassword) {
-//       return res.json({ success: false, message: "Incorrect Password!" });
-//     }
-
-//     if (!data.isVerified) {
-//       const token = crypto.randomBytes(32).toString("hex");
-//       data.verificationToken = token;
-//       data.verificationTokenExpires = Date.now() + 1000 * 60 * 60;
-//       await data.save();
-
-//       const verifyUrl = `${process.env.BACKEND_URL}/api/user/verify/${token}`;
-//       const html = `<h3>Verify your account </h3>
-//                     <p>Click link to verify:</p>
-//                     <a href="${verifyUrl}">${verifyUrl}</a>`;
-
-//       await sendEmail({
-//         to: email,
-//         subject: "Verify your admin account",
-//         html,
-//       });
-
-//       return res.json({
-//         success: false,
-//         message: "Please verify your email. A new verification link has been sent!",
-//       });
-//     }
-
-//       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-//       data.verificationToken = otp;
-//       data.verificationTokenExpires = Date.now() + 1000 * 60 * 15; 
-//       await data.save();
-
-//       const html = `<h3>Login Verification</h3>
-//                     <p>Your login verification code is: <b>${otp}</b></p>`;
-      
-//       await sendEmail({ to: email, subject: "Login OTP", html });
-
-//       return res.json({
-//         success: true,
-//         requireOtp: true,
-//         message: "OTP sent to your email. Please verify to login.",
-//       });
-
-
-//   } catch (error) {
-//     console.log(error);
-//     return res.json({ success: false, message: "Login failed!" });
-//   }
-// };
 
 export const Login = async (req, res) => {
   try {

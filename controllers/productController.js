@@ -3,7 +3,7 @@ import Product from "../models/product.model.js";
 
 export const createProduct = async (req, res) => {
   try {
-    console.log("req",req.file.path)
+    console.log("file name",req.file.path)
     const { name, price, quantity, serial_number , category} = req.body;
     const userId = req.userId;
 
@@ -82,7 +82,6 @@ export const fetchProductsByCategory = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-// routes/productRoutes.js
 
 export const filterProductsByCategory = async (req, res) => {
   try {
@@ -92,7 +91,6 @@ export const filterProductsByCategory = async (req, res) => {
       return res.status(400).json({ message: "Category IDs are required" });
     }
 
-    // Products in selected categories
     const products = await Product.find({ category: { $in: categoryIds } })
       .populate("user", "name email")
       .populate("category");
@@ -108,32 +106,32 @@ export const filterProductsByCategory = async (req, res) => {
   }
 }
 
-
 export const updateProduct = async (req, res) => {
   try {
     const userId = req.userId;
-    console.log("file",req.file.path)  
-    const { id, name, price, quantity, serial_number } = req.body;
-    console.log()
+    const { id, name, price, quantity, serial_number, category } = req.body;
+
     if (!id) {
       return res.status(400).json({ message: "Product ID is required" });
     }
 
-    const product = await Product.findById(id).populate("user")
-    console.log("product",product)
+    const product = await Product.findById(id).populate("user");
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
     if (product.user._id.toString() !== userId) {
-      return res.status(401).json({ message: "Unauthorized user cannot update this product" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized user cannot update this product" });
     }
 
-    if (name) product.name = name;
-    if (price) product.price = price;
-    if (quantity) product.quantity = quantity;
-    if (serial_number) product.serial_number = serial_number;
+    if (name !== undefined) product.name = name;
+    if (price !== undefined) product.price = price;
+    if (quantity !== undefined) product.quantity = quantity;
+    if (serial_number !== undefined) product.serial_number = serial_number;
+    if (category !== undefined) product.category = category;
 
     if (req.file) {
       product.image = req.file.path;
@@ -141,18 +139,16 @@ export const updateProduct = async (req, res) => {
 
     const updatedProduct = await product.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: "Product updated successfully",
       product: updatedProduct,
     });
-
   } catch (error) {
     console.error("UPDATE PRODUCT ERROR:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const deleteProduct = async (req, res) => {
   try {

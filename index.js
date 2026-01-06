@@ -6,6 +6,7 @@ import connectDB from "./database/db.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import userRoutes from "./routes/user.route.js";
+import adminRoutes from "./routes/admin.route.js";
 import orderRoutes from "./routes/order.route.js";
 import categoryRoutes from "./routes/category.route.js";
 
@@ -26,6 +27,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use("/user", userRoutes);
+app.use("/admin", adminRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
 app.use("/order", orderRoutes);

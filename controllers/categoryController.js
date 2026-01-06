@@ -58,7 +58,6 @@ export const updateCategory = async (req, res) => {
   try {
     const { name, parent, isActive } = req.body;
     const { id } = req.params;
-
     const updateData = {};
 
     if (name) {
@@ -133,16 +132,13 @@ export const disableCategory = async (req, res) => {
     let updatedCategory;
 
     if (category.isActive) {
-      // Disable main category
       updatedCategory = await Category.findByIdAndUpdate(
         id,
         { isActive: false },
         { new: true }
       );
 
-      // Agar parent null hai → top-level category
       if (!category.parent) {
-        // Disable all child categories
         await Category.updateMany(
           { parent: category._id },
           { isActive: false }
