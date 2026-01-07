@@ -7,6 +7,7 @@ import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import userRoutes from "./routes/user.route.js";
 import orderRoutes from "./routes/order.route.js";
+import categoryRoutes from "./routes/category.route.js";
 
 connectDB();
 
@@ -28,6 +29,7 @@ app.use("/user", userRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
 app.use("/order", orderRoutes);
+app.use("/category", categoryRoutes);
 
 app.get("/", (req, res) => res.send("API is running..."));
 

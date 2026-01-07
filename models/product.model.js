@@ -6,6 +6,11 @@ const productSchema = new mongoose.Schema({
   image: { type: String, required: true },
   quantity: { type: Number, required: true },
   serial_number: { type: Number, required: true },
+  category: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Category", 
+    required: true 
+  },
 
   user: {
     type: mongoose.Schema.Types.ObjectId,

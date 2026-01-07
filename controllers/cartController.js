@@ -28,7 +28,7 @@ export const addCartItem = async (req, res) => {
     }
 
     await cart.save();
-    res.status(200).json({ success: true, cart });
+    res.status(200).json({ success: true, cart , message: "Product added to cart" });
 
   } catch (error) {
     console.error(error);
@@ -68,8 +68,12 @@ export const allfetchCart = async (req, res) => {
 };
 export const updateCartItem = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { quantity } = req.body;
+    const productId = req.params.id; 
     const userId = req.userId;
+
+    console.log("quantity", quantity);
+    console.log("productId", productId);
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart)
@@ -83,6 +87,7 @@ export const updateCartItem = async (req, res) => {
       return res.status(404).json({ message: "Item not found" });
 
     cart.items[index].quantity = quantity;
+
     await cart.save();
 
     res.status(200).json({ success: true, cart });
@@ -92,6 +97,7 @@ export const updateCartItem = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const deleteCartItem = async (req, res) => {
   try {
     const { productId } = req.params;

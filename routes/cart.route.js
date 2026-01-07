@@ -7,13 +7,13 @@ import {
   deleteCart,
   allfetchCart,
 } from "../controllers/cartController.js";
-import { isAuthentication } from "../middleware/isAuthenticated.js";
+import { isAuthentication, isAuthorized } from "../middleware/isAuthenticated.js";
 
 const router = express.Router();
 router.post("/add/:productId",isAuthentication, addCartItem);
 router.get("/",isAuthentication, fetchCart);
-router.get('/allfetchCart',isAuthentication, allfetchCart);
-router.put("/update",isAuthentication,updateCartItem);
+router.get('/allfetchCart',isAuthentication, isAuthorized("admin", "superAdmin"), allfetchCart);
+router.patch("/update/:id",isAuthentication,updateCartItem);
 router.delete("/delete/:productId",isAuthentication, deleteCartItem);
 router.delete("/deleteCart/:cartId",isAuthentication, deleteCart);
 
