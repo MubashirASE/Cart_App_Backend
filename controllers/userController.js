@@ -65,6 +65,8 @@ export const SignUp = async (req, res) => {
   }
 };
 
+
+
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -261,7 +263,7 @@ export const getadminData= async (req, res) => {
     });
   }
 };
-export const userBlocked=async (req, res) => {
+export const blocked=async (req, res) => {
   const userId = await User.findById(req.params.id);
   if (!userId) {
     return res.status(404).json({ success: false, message: "User not found" });
@@ -274,11 +276,11 @@ export const userBlocked=async (req, res) => {
 
   res.json({
     success: true,
-    message: "User blocked successfully!",
+    message: "blocked successfully!",
     user
   });
 }
-export const userUnBlocked=async (req, res) => {
+export const unBlocked=async (req, res) => {
   const userId = await User.findById(req.params.id);
   if (!userId) {
     return res.status(404).json({ success: false, message: "User not found" });
@@ -291,7 +293,7 @@ export const userUnBlocked=async (req, res) => {
 
   res.json({
     success: true,
-    message: "User unblocked successfully!",
+    message: "unblocked successfully!",
     user
   });
 }
@@ -349,3 +351,37 @@ export const generateBlockEmailTemplate = (userName, reason) => {
   </html>
   `;
 };
+
+
+export const createAdmin = async (req, res) => {
+  try {
+    const { name, email, password, role} = req.body;
+    if (!name || !email || !password) {
+      return res.json({ success: false, message: "All fields are required!" });
+    }
+
+    const userData = await User.findOne({ email });
+    if (userData) return res.json({ success: false, message: "Email already exists!" });
+
+    const hashPassword = await bcrypt.hash(password, 10);
+  
+    const adminUser = await User.create({
+        name,
+        email,
+        password: hashPassword,
+        role,
+        isVerified: true,
+      });
+      return res.status(201).json({
+        success: true,
+        message: "Admin Created. Check your email for the OTP.",
+      });
+    
+  
+     
+  } catch (error) {
+    console.log(error);
+    return res.json({ success: false, message:error});
+  }
+};
+
