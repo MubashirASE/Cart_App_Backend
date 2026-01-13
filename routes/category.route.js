@@ -11,19 +11,21 @@ import {
   getAllCategoriesUser,
   getChildCategories
 } from "../controllers/categoryController.js";
-import { isAuthentication, isAuthorized } from "../middleware/isAuthenticated.js";
+import { isAuthenticated, isAuthorized } from "../middleware/isAuthenticated.js";
 import upload from "../middleware/upload.js";
+import validate from "../middleware/validate.js";
+import { categorySchema, updateCategorySchema, idParamSchema } from "../utils/validationSchemas.js";
 
 const router = express.Router();
 
 router.get("/", getActiveCategories);
 router.get("/:id", getCategoryById);
 router.get("/:id/products", getCategoryWithProducts);
-router.get("/admin/all", isAuthentication, isAuthorized("admin", "superAdmin"), getAllCategoriesAdmin);
-router.get("/user/all", isAuthentication, getAllCategoriesUser);
-router.get("/children/:parentId", isAuthentication, getChildCategories);
-router.post("/", isAuthentication, isAuthorized("admin", "superAdmin"), upload.single("image"),  createCategory);
-router.patch("/:id", isAuthentication, isAuthorized("admin", "superAdmin"), upload.single("image"), updateCategory);
-router.patch("/:id/disable", isAuthentication, isAuthorized("admin", "superAdmin"), disableCategory);
-router.delete("/:id", isAuthentication, isAuthorized("admin", "superAdmin"),  deleteCategory);
+router.get("/admin/all", isAuthenticated, isAuthorized("admin", "superAdmin"), getAllCategoriesAdmin);
+router.get("/user/all", getAllCategoriesUser);
+router.get("/children/:parentId", isAuthenticated, getChildCategories);
+router.post("/", isAuthenticated, isAuthorized("admin", "superAdmin"), upload.single("image"), validate(categorySchema), createCategory);
+router.patch("/:id", isAuthenticated, isAuthorized("admin", "superAdmin"), upload.single("image"), validate(updateCategorySchema), updateCategory);
+router.patch("/:id/disable", isAuthenticated, isAuthorized("admin", "superAdmin"), validate(idParamSchema), disableCategory);
+router.delete("/:id", isAuthenticated, isAuthorized("admin", "superAdmin"),  deleteCategory);
 export default router;

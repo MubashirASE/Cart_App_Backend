@@ -18,9 +18,9 @@ const userSchema = new mongoose.Schema({
         enum:["user","admin","superAdmin"],
         default:'user'
     },
-  isVerified: { type: Boolean, default: false }, // email verified or not
-  verificationToken: { type: String }, // random token for email verification
-  verificationTokenExpires: { type: Date }, // token expiry
+  isVerified: { type: Boolean, default: false }, 
+  verificationToken: { type: String }, 
+  verificationTokenExpires: { type: Date }, 
   isBlocked: { type: Boolean, default: false }
 }, { timestamps: true });
 

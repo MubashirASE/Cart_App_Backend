@@ -264,12 +264,12 @@ export const getadminData= async (req, res) => {
   }
 };
 export const blocked=async (req, res) => {
-  const userId = await User.findById(req.params.id);
-  if (!userId) {
+  const userToBlock = await User.findById(req.params.id);
+  if (!userToBlock) {
     return res.status(404).json({ success: false, message: "User not found" });
   }
   const user = await User.findByIdAndUpdate(
-    userId._id,
+    userToBlock._id,
     { isBlocked: true },
     { new: true }
   );
@@ -281,12 +281,12 @@ export const blocked=async (req, res) => {
   });
 }
 export const unBlocked=async (req, res) => {
-  const userId = await User.findById(req.params.id);
-  if (!userId) {
+  const userToBlock = await User.findById(req.params.id);
+  if (!userToBlock) {
     return res.status(404).json({ success: false, message: "User not found" });
   }
   const user = await User.findByIdAndUpdate(
-    userId._id,
+    userToBlock._id,
     { isBlocked: false },
     { new: true }
   );

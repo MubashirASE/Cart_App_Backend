@@ -1,18 +1,29 @@
+import { checkPrimeSync } from "crypto";
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
+
 
 export const addCartItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = req.userId;
-    const product = await Product.findById(productId);
+    const guestId = req.guestId;
+
+    if (!userId && !guestId) {
+        return res.status(400).json({ message: "User ID or Guest ID required" });
+    }
+
+    const product = await Product.findById(productId).populate("user")                
+    console.log("product",product)
     if (!product)
       return res.status(404).json({ message: "Product not found" });
-    let cart = await Cart.findOne({ user: userId });
+
+    let query = userId ? { user: userId } : { guestId: guestId };
+    let cart = await Cart.findOne(query);
 
     if (!cart) {
       cart = new Cart({
-        user: userId,
+        ...query,
         items: [{ productId, quantity: 1 }],
       });
     } else {
@@ -38,9 +49,15 @@ export const addCartItem = async (req, res) => {
 export const fetchCart = async (req, res) => {
   try {
     const userId = req.userId;
+    const guestId = req.guestId;
 
-    const cart = await Cart.findOne({ user: userId }).populate("items.productId");
+    if (!userId && !guestId) {
+        return res.status(400).json({ message: "User ID or Guest ID required" });
+    }
 
+    let query = userId ? { user: userId } : { guestId: guestId };
+    const cart = await Cart.findOne(query).populate("items.productId");
+    console.log("cart",cart)
     if (!cart || cart.items.length === 0)
       return res.status(404).json({ message: "Cart is empty" });
 
@@ -71,11 +88,17 @@ export const updateCartItem = async (req, res) => {
     const { quantity } = req.body;
     const productId = req.params.id; 
     const userId = req.userId;
+    const guestId = req.guestId;
+
+    if (!userId && !guestId) {
+        return res.status(400).json({ message: "User ID or Guest ID required" });
+    }
 
     console.log("quantity", quantity);
     console.log("productId", productId);
 
-    const cart = await Cart.findOne({ user: userId });
+    let query = userId ? { user: userId } : { guestId: guestId };
+    const cart = await Cart.findOne(query);
     if (!cart)
       return res.status(404).json({ message: "Cart not found" });
 
@@ -102,8 +125,15 @@ export const deleteCartItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = req.userId;
+    const guestId = req.guestId;
+
+    if (!userId && !guestId) {
+        return res.status(400).json({ message: "User ID or Guest ID required" });
+    }
+
     console.log("productId",productId)
-    const cart = await Cart.findOne({ user: userId });
+    let query = userId ? { user: userId } : { guestId: guestId };
+    const cart = await Cart.findOne(query);
     if (!cart)
       return res.status(404).json({ message: "Cart not found" });
     console.log("cart",cart)
@@ -121,10 +151,14 @@ export const deleteCartItem = async (req, res) => {
 export const deleteCart = async (req, res) => {
   try {
     const userId = req.userId;
-    await Cart.deleteOne({ user: userId });
+    const guestId = req.guestId;
+    
+    let query = userId ? { user: userId } : { guestId: guestId };
+    await Cart.deleteOne(query);
     res.status(200).json({ success: true, message: "Cart deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
